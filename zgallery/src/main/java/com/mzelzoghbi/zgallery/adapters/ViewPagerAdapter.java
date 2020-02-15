@@ -2,8 +2,7 @@ package com.mzelzoghbi.zgallery.adapters;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
+import android.graphics.Bitmap;
 import android.support.v4.view.PagerAdapter;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -15,12 +14,10 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.mzelzoghbi.zgallery.R;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import java.util.ArrayList;
 
@@ -62,14 +59,20 @@ public class ViewPagerAdapter extends PagerAdapter {
         View itemView = mLayoutInflater.inflate(R.layout.z_pager_item, container, false);
 
         final ImageView imageView = (ImageView) itemView.findViewById(R.id.iv);
-        Glide.with(activity).load(images.get(position)).listener(new RequestListener<Drawable>() {
+        ImageLoader loader = ImageLoader.getInstance();
+        loader.displayImage(images.get(position), imageView, new ImageLoadingListener() {
             @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                return false;
+            public void onLoadingStarted(String imageUri, View view) {
+
             }
 
             @Override
-            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+            public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+
+            }
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 mPhotoViewAttacher = new PhotoViewAttacher(imageView);
 
                 mPhotoViewAttacher.setOnPhotoTapListener(new PhotoViewAttacher.OnPhotoTapListener() {
@@ -77,11 +80,18 @@ public class ViewPagerAdapter extends PagerAdapter {
                     public void onPhotoTap(View view, float x, float y) {
                         if (isShowing) {
                             isShowing = false;
-                            toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
-                            imagesHorizontalList.animate().translationY(imagesHorizontalList.getBottom()).setInterpolator(new AccelerateInterpolator()).start();
+                            if (toolbar != null) {
+                                toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new AccelerateInterpolator())
+                                        .start();
+                            }
+                            imagesHorizontalList.animate().translationY(imagesHorizontalList.getBottom())
+                                    .setInterpolator(new AccelerateInterpolator()).start();
                         } else {
                             isShowing = true;
-                            toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
+
+                            if (toolbar != null) {
+                                toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
+                            }
                             imagesHorizontalList.animate().translationY(0).setInterpolator(new DecelerateInterpolator()).start();
                         }
                     }
@@ -91,12 +101,13 @@ public class ViewPagerAdapter extends PagerAdapter {
 
                     }
                 });
-
-
-                return false;
             }
 
-        }).into(imageView);
+            @Override
+            public void onLoadingCancelled(String imageUri, View view) {
+
+            }
+        });
 
         container.addView(itemView);
 

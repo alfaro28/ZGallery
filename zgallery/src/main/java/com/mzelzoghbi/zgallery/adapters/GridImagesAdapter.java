@@ -6,11 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
 import com.mzelzoghbi.zgallery.ImageViewHolder;
 import com.mzelzoghbi.zgallery.R;
 import com.mzelzoghbi.zgallery.adapters.listeners.GridClickListener;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 
@@ -22,12 +22,20 @@ public class GridImagesAdapter extends RecyclerView.Adapter<ImageViewHolder> {
     private Activity mActivity;
     private int imgPlaceHolderResId = -1;
     private GridClickListener clickListener;
+    private DisplayImageOptions options;
 
     public GridImagesAdapter(Activity activity, ArrayList<String> imageURLs, int imgPlaceHolderResId) {
         this.imageURLs = imageURLs;
         this.mActivity = activity;
         this.imgPlaceHolderResId = imgPlaceHolderResId;
         this.clickListener = (GridClickListener) activity;
+
+        int placeholder = (imgPlaceHolderResId != -1 ? imgPlaceHolderResId : R.drawable.placeholder);
+        this.options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(placeholder)
+                .showImageForEmptyUri(placeholder)
+                .showImageOnFail(placeholder)
+                .build();
     }
 
     @Override
@@ -37,10 +45,8 @@ public class GridImagesAdapter extends RecyclerView.Adapter<ImageViewHolder> {
 
     @Override
     public void onBindViewHolder(ImageViewHolder holder, final int position) {
-        RequestOptions requestOptions = new RequestOptions().placeholder(imgPlaceHolderResId != -1 ? imgPlaceHolderResId : R.drawable.placeholder);
-        Glide.with(mActivity).load(imageURLs.get(position))
-                .apply(requestOptions)
-                .into(holder.image);
+        ImageLoader loader = ImageLoader.getInstance();
+        loader.displayImage(imageURLs.get(position), holder.image, options);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
